@@ -3,17 +3,33 @@
 <% if user_logged_in? %>
   <h2>Welcome <%= get_current_user.email %></h2>
   <a href="/users/logout">Logout</a>
-<% end %>
 
-<% @tracks.each do |track| %>
-  <div class="track">
-    <h3><a href="/tracks/<%= track.id %>"><%= track.song_title %></a> <small>(by: <%= track.author %> at <%= track.created_at %> posted by: <%= track.user.email %>)</small></h3>
-    <p>
-      <%= track.url %>
-    </p>
-    <p>---------------------------</p>
-  </div>
-<% end %>
 
-<br/>
-<a href="/tracks/new">Post a track... It's FREE(for now!)</a>
+  <% @tracks.each do |track| %>
+    <div class="track">
+      <h3>
+        <a href="/tracks/<%= track.id %>"><%= track.song_title %></a> 
+        <small>
+          (by: <%= track.author %> at <%= track.created_at %> 
+          posted by: <%= track.created_by_id %>)
+        </small>
+      </h3>
+      
+      <% if !@user.has_voted?(track.id) %>
+        <form method="POST" action="/tracks/vote">
+          <input type="hidden" name="track_id" value=<%= track.id %>>
+          <input type="submit" value="Vote">
+        </form>
+      <% else %>
+        <h4><font color="green">Total vote: <%= track.upvote %>"</font></h4>
+      <% end %>
+
+      <p><%= track.url %></p>
+      <p>---------------------------</p>
+    </div>
+  <% end %>
+
+  <br/>
+  <a href="/tracks/new">Post a track..</a>
+
+<% end %>

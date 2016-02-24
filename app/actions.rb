@@ -28,7 +28,7 @@ post '/users/login' do
   @user = User.find_by(email: params[:email])
   if @user && @user.password == params[:password]
     session[:email] = @user.email
-    redirect '/tracks'
+    redirect '/'
   else
     redirect '/users/login'
   end
@@ -59,12 +59,12 @@ end
 
 get '/tracks' do
   @tracks = Track.all
-  #@tracks = Track.joins("LEFT JOIN users ON tracks.user_id = users.id ")
+  @user = get_current_user
   erb :'tracks/index_track'
 end
 
 get '/tracks/new' do
-  @tracks = Track.new
+  @track = Track.new
   erb :'tracks/new_track'
 end
 
@@ -75,16 +75,43 @@ get '/tracks/:id' do
 end
 
 post '/tracks' do
+  @user = get_current_user
+
   @track = Track.new(
     song_title: params[:song_title],
     url: params[:url],
     author: params[:author],
-    user_id: get_current_user.id
+    created_by_id: @user.id
   )
 
-  if @track.save && @email_by
-    redirect '/tracks'
+  if @track.save
+    redirect '/'
   else
     erb :'tracks/new_track'
   end
 end
+
+post '/tracks/vote' do
+  @user = get_current_user
+  user_id=@user.id
+  track_id=params[:track_id]
+  #puts track_id
+  vote = Vote.new(
+    user_id: user_id,
+    track_id: track_id
+  )
+  
+  if vote.save
+    @track_temp = Track.find(track_id)
+    votes = @track_temp.upvote
+    votes = votes+1
+    @track_temp.update(upvote: votes)
+
+    redirect '/'
+  end
+end
+  #vote = Vote.check_song_and_user(get_current_user.id, )
+
+
+
+
